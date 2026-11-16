@@ -57,6 +57,29 @@ def list_assigned_courses(instructor_id: int, db: Session) -> list[CourseListIte
     return results
 
 
+def get_assigned_course_detail(course_id: int, db: Session, current_user: User):
+    require_course_instructor(course_id, db, current_user)
+    course = db.get(Course, course_id)
+    if not course:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
+
+    cat_name = course.category.name if course.category else None
+    return {
+        "id": course.id,
+        "title": course.title,
+        "description": course.description,
+        "category_id": course.category_id,
+        "category_name": cat_name,
+        "status": course.status,
+        "is_active": course.is_active,
+        "created_by": course.created_by,
+        "created_at": course.created_at,
+        "updated_at": course.updated_at,
+        "instructors": [],
+        "enrolled_students": []
+    }
+
+
 def get_course_students(course_id: int, db: Session, current_user: User) -> list[EnrolledStudentOut]:
     require_course_instructor(course_id, db, current_user)
 

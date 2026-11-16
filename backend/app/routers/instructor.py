@@ -31,6 +31,16 @@ def get_assigned_courses(
     return instructor_service.list_assigned_courses(current_user.id, db)
 
 
+@router.get("/courses/{course_id}")
+def get_assigned_course(
+    course_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get single course detail for assigned instructor."""
+    return instructor_service.get_assigned_course_detail(course_id, db, current_user)
+
+
 @router.patch("/courses/{course_id}/publish")
 def update_course_publish_status(
     course_id: int,

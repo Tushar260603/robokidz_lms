@@ -36,6 +36,7 @@ export const adminApi = {
 
 export const instructorApi = {
   getCourses: () => client.get('/instructor/courses'),
+  getCourse: (id) => client.get(`/instructor/courses/${id}`),
   updateCoursePublish: (id, status) => client.patch(`/instructor/courses/${id}/publish`, { status }),
   getCourseStudents: (id) => client.get(`/instructor/courses/${id}/students`),
   getStudentProgress: (courseId, studentId) =>

@@ -26,7 +26,7 @@ export default function InstructorStudentsProgressPage() {
     setLoading(true);
     try {
       const [cRes, sRes] = await Promise.all([
-        adminApi.getCourse(id),
+        instructorApi.getCourse(id),
         instructorApi.getCourseStudents(id)
       ]);
       setCourse(cRes.data);

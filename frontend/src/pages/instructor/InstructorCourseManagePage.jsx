@@ -36,7 +36,7 @@ export default function InstructorCourseManagePage() {
     setLoading(true);
     try {
       const [courseRes, lessonsRes] = await Promise.all([
-        adminApi.getCourse(id),
+        instructorApi.getCourse(id),
         instructorApi.getLessons(id)
       ]);
       setCourse(courseRes.data);
