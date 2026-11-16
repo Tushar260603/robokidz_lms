@@ -28,11 +28,14 @@ app.add_middleware(
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 from app.routers import instructor as instructor_router
+from app.routers import student as student_router
 
 app.include_router(auth_router.router)
 app.include_router(admin_router.router)
 app.include_router(instructor_router.router)
 app.include_router(instructor_router.materials_router)
+app.include_router(student_router.public_course_router)
+app.include_router(student_router.student_router)
 
 
 # ── System endpoints ──────────────────────────────────────────────────────────
