@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import get_settings
 from app.core.database import check_db_connection
 from app.routers import auth as auth_router
+from app.routers import admin as admin_router
 from app.deps.auth import require_admin
 from app.models.user import User
 from fastapi import Depends
@@ -27,6 +28,7 @@ app.add_middleware(
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth_router.router)
+app.include_router(admin_router.router)
 
 
 # ── System endpoints ──────────────────────────────────────────────────────────
