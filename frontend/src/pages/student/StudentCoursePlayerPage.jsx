@@ -126,23 +126,54 @@ export default function StudentCoursePlayerPage() {
                 </div>
 
                 {/* Video Embed Player */}
-                {activeLesson.video_url && (
-                  <div style={{ marginBottom: '1.5rem', borderRadius: '8px', overflow: 'hidden', background: '#000' }}>
-                    {activeLesson.video_url.includes('youtube.com') || activeLesson.video_url.includes('youtu.be') ? (
-                      <iframe
-                        src={activeLesson.video_url.replace('watch?v=', 'embed/')}
-                        title="Lesson Video"
-                        style={{ width: '100%', height: '420px', border: 'none' }}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    ) : (
-                      <div style={{ padding: '1rem', color: 'white', fontSize: '0.875rem' }}>
-                        Video link: <a href={activeLesson.video_url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>{activeLesson.video_url}</a>
-                      </div>
-                    )}
-                  </div>
-                )}
+                {activeLesson.video_url && (() => {
+                  const getEmbedUrl = (url) => {
+                    try {
+                      // Handle youtu.be/<id>
+                      if (url.includes('youtu.be/')) {
+                        const id = url.split('youtu.be/')[1]?.split('?')[0];
+                        return id ? `https://www.youtube.com/embed/${id}` : null;
+                      }
+                      // Handle youtube.com/watch?v=<id>
+                      if (url.includes('youtube.com/watch')) {
+                        const parsed = new URL(url);
+                        const id = parsed.searchParams.get('v');
+                        return id ? `https://www.youtube.com/embed/${id}` : null;
+                      }
+                      // Handle youtube.com/embed/<id>
+                      if (url.includes('youtube.com/embed/')) {
+                        return url;
+                      }
+                    } catch {
+                      return null;
+                    }
+                    return null;
+                  };
+
+                  const embedUrl = getEmbedUrl(activeLesson.video_url);
+
+                  return (
+                    <div style={{ marginBottom: '1.5rem', borderRadius: '8px', overflow: 'hidden', background: '#000' }}>
+                      {embedUrl ? (
+                        <iframe
+                          src={embedUrl}
+                          title="Lesson Video"
+                          style={{ width: '100%', height: '420px', border: 'none', display: 'block' }}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div style={{ padding: '1.25rem', color: 'white', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Play size={18} />
+                          <span>Video Resource:</span>
+                          <a href={activeLesson.video_url} target="_blank" rel="noreferrer" style={{ color: '#60a5fa', textDecoration: 'underline' }}>
+                            {activeLesson.video_url}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Lecture Notes / Content */}
                 <div style={{ marginBottom: '2rem' }}>
