@@ -26,6 +26,7 @@ export default function AdminCoursesPage() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [assignCourseId, setAssignCourseId] = useState(null);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
+  const [instSearch, setInstSearch] = useState('');
 
   useEffect(() => {
     fetchInitialData();
@@ -137,6 +138,7 @@ export default function AdminCoursesPage() {
 
   const handleOpenAssignModal = async (courseId) => {
     setAssignCourseId(courseId);
+    setInstSearch('');
     try {
       const res = await adminApi.getCourse(courseId);
       const currentInstIds = res.data.instructors.map(i => i.id);
@@ -169,15 +171,17 @@ export default function AdminCoursesPage() {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Course Management</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Create courses, assign instructors, and monitor enrollment</p>
+      <div className="page-header">
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h1>📚 Course Management</h1>
+            <p>Create courses, assign instructors, and monitor enrollment</p>
+          </div>
+          <button type="button" onClick={handleOpenCreateCourse} className="btn btn-accent" style={{ position: 'relative', zIndex: 2, cursor: 'pointer' }}>
+            <BookPlus size={16} />
+            <span>Create Course</span>
+          </button>
         </div>
-        <button onClick={handleOpenCreateCourse} className="btn btn-primary">
-          <BookPlus size={16} />
-          <span>Create Course</span>
-        </button>
       </div>
 
       <Alert type="error" message={error} onClose={() => setError('')} />
@@ -278,6 +282,58 @@ export default function AdminCoursesPage() {
               )}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          {Math.ceil(total / 10) > 1 && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem 1.25rem',
+              borderTop: '1px solid var(--border)',
+              background: '#ffffff',
+              flexWrap: 'wrap',
+              gap: '0.75rem'
+            }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Showing <strong>{((page - 1) * 10) + 1}</strong> - <strong>{Math.min(page * 10, total)}</strong> of <strong>{total}</strong> courses
+              </span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="btn btn-secondary btn-sm"
+                  style={{ opacity: page === 1 ? 0.5 : 1, cursor: page === 1 ? 'not-allowed' : 'pointer' }}
+                >
+                  ← Previous
+                </button>
+
+                {Array.from({ length: Math.ceil(total / 10) }, (_, i) => i + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setPage(pageNum)}
+                    className={`btn btn-sm ${pageNum === page ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ minWidth: '32px' }}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => setPage(p => Math.min(Math.ceil(total / 10), p + 1))}
+                  disabled={page === Math.ceil(total / 10)}
+                  className="btn btn-secondary btn-sm"
+                  style={{ opacity: page === Math.ceil(total / 10) ? 0.5 : 1, cursor: page === Math.ceil(total / 10) ? 'not-allowed' : 'pointer' }}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -348,26 +404,102 @@ export default function AdminCoursesPage() {
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
             Select active instructors who can manage lessons and learning materials for this course:
           </p>
-          <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.75rem' }}>
-            {instructorsList.map((inst) => (
-              <label key={inst.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={selectedInstructors.includes(inst.id)}
-                  onChange={() => toggleInstructorSelection(inst.id)}
-                />
-                <span style={{ fontSize: '0.875rem' }}>{inst.name} ({inst.email})</span>
-              </label>
-            ))}
+
+          {/* Selected tags */}
+          {selectedInstructors.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.75rem' }}>
+              {selectedInstructors.map(id => {
+                const inst = instructorsList.find(i => i.id === id);
+                if (!inst) return null;
+                return (
+                  <span key={id} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                    background: 'var(--primary)', color: '#fff',
+                    borderRadius: '999px', padding: '0.2rem 0.65rem',
+                    fontSize: '0.78rem', fontWeight: 500
+                  }}>
+                    {inst.name}
+                    <button
+                      type="button"
+                      onClick={() => toggleInstructorSelection(id)}
+                      style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '0.9rem' }}
+                      title="Remove"
+                    >×</button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Search input */}
+          <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+            <Search size={15} style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Search by name or email…"
+              value={instSearch}
+              onChange={e => setInstSearch(e.target.value)}
+              style={{ paddingLeft: '2rem' }}
+              autoComplete="off"
+            />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button type="button" onClick={() => setIsAssignModalOpen(false)} className="btn btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Save Assignments
-            </button>
+          {/* Instructor list */}
+          <div style={{ maxHeight: '220px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '6px' }}>
+            {(() => {
+              const q = instSearch.toLowerCase().trim();
+              const filtered = instructorsList.filter(i =>
+                i.name.toLowerCase().includes(q) || i.email.toLowerCase().includes(q)
+              );
+              if (filtered.length === 0) {
+                return (
+                  <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    No instructors found
+                  </div>
+                );
+              }
+              return filtered.map(inst => {
+                const checked = selectedInstructors.includes(inst.id);
+                return (
+                  <label key={inst.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.65rem',
+                    padding: '0.55rem 0.85rem', cursor: 'pointer',
+                    background: checked ? 'rgba(79,70,229,0.07)' : 'transparent',
+                    borderBottom: '1px solid var(--border)',
+                    transition: 'background 0.15s'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleInstructorSelection(inst.id)}
+                      style={{ accentColor: 'var(--primary)', width: '15px', height: '15px', flexShrink: 0 }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: checked ? 600 : 400 }}>{inst.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{inst.email}</div>
+                    </div>
+                    {checked && (
+                      <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 600 }}>✓ Assigned</span>
+                    )}
+                  </label>
+                );
+              });
+            })()}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              {selectedInstructors.length} instructor{selectedInstructors.length !== 1 ? 's' : ''} selected
+            </span>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button type="button" onClick={() => setIsAssignModalOpen(false)} className="btn btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Save Assignments
+              </button>
+            </div>
           </div>
         </form>
       </Modal>

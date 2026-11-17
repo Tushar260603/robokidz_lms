@@ -1,7 +1,3 @@
--- ============================================================
--- RoboKidz LMS – Database Schema
--- Generated from SQLAlchemy models (Alembic initial_schema)
--- ============================================================
 
 CREATE DATABASE IF NOT EXISTS robokidz_lms
   CHARACTER SET utf8mb4
@@ -9,7 +5,6 @@ CREATE DATABASE IF NOT EXISTS robokidz_lms
 
 USE robokidz_lms;
 
--- ── users ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
     id            INT           NOT NULL AUTO_INCREMENT,
     name          VARCHAR(100)  NOT NULL,
@@ -33,7 +28,6 @@ CREATE TABLE IF NOT EXISTS categories (
     UNIQUE KEY name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ── courses ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS courses (
     id          INT           NOT NULL AUTO_INCREMENT,
     title       VARCHAR(200)  NOT NULL,

@@ -19,6 +19,15 @@ class StudentCourseListItem(BaseModel):
     is_enrolled: bool = False
 
 
+class LessonPreviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    title: str
+    position: int
+    has_video: bool = False
+    materials_count: int = 0
+
+
 class StudentCourseDetail(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -33,6 +42,7 @@ class StudentCourseDetail(BaseModel):
     total_lessons: int = 0
     is_enrolled: bool = False
     progress_percentage: float = 0.0
+    lessons: list[LessonPreviewOut] = []
 
 
 class StudentMaterialOut(BaseModel):

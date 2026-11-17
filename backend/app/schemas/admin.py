@@ -164,6 +164,7 @@ class CourseStatItem(BaseModel):
     published_lessons_count: int
     completed_students_count: int
     completion_rate_percentage: float
+    average_progress_percentage: float = 0.0
 
 
 class AdminStatsOut(BaseModel):

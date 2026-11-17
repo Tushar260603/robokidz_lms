@@ -3,16 +3,14 @@ import { Link } from 'react-router-dom';
 import { studentApi } from '../../api/endpoints';
 import Loader from '../../components/Loader';
 import Alert from '../../components/Alert';
-import { BookOpen, PlayCircle, CheckCircle } from 'lucide-react';
+import { PlayCircle, Layers, Trophy } from 'lucide-react';
 
 export default function StudentMyCoursesPage() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchMyCourses();
-  }, []);
+  useEffect(() => { fetchMyCourses(); }, []);
 
   const fetchMyCourses = async () => {
     setLoading(true);
@@ -26,62 +24,76 @@ export default function StudentMyCoursesPage() {
     }
   };
 
-  if (loading) return <Loader fullScreen text="Loading your enrolled courses..." />;
+  if (loading) return <Loader text="Loading your courses…" />;
 
   return (
     <div className="container">
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>My Learning</h1>
-        <p style={{ color: 'var(--text-muted)' }}>Resume your courses and track your completion progress</p>
+      <div className="page-header">
+        <h1>🎓 My Learning</h1>
+        <p>Resume your courses and track your completion progress</p>
       </div>
 
       <Alert type="error" message={error} />
 
       {courses.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
-          <BookOpen size={48} color="#94a3b8" style={{ margin: '0 auto 1rem' }} />
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>No enrolled courses</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem', marginBottom: '1.5rem' }}>
-            You haven't enrolled in any courses yet. Browse our catalog to find exciting topics!
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--navy)', marginBottom: '0.5rem' }}>No enrolled courses yet</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            Browse our catalog and start your robotics journey!
           </p>
-          <Link to="/courses" className="btn btn-primary">
-            Explore Course Catalog
-          </Link>
+          <Link to="/courses" className="btn btn-accent btn-lg">🚀 Explore Courses</Link>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
-          {courses.map((course) => (
-            <div key={course.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <span className="badge badge-info" style={{ marginBottom: '0.5rem' }}>{course.category_name || 'General'}</span>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>{course.title}</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+          {courses.map((course) => {
+            const done = course.progress_percentage === 100;
+            return (
+              <div key={course.id} className="course-card">
+                {/* Card header */}
+                <div className="course-card-header" style={done ? { background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)' } : {}}>
+                  <span className="course-card-category">{course.category_name || 'General'}</span>
+                  {done && (
+                    <span style={{ marginLeft: 'auto', background: 'var(--yellow)', color: 'var(--navy)', borderRadius: '999px', padding: '0.15rem 0.6rem', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <Trophy size={11} /> Completed!
+                    </span>
+                  )}
+                </div>
 
-                {course.instructors?.length > 0 && (
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                    Instructors: {course.instructors.join(', ')}
-                  </div>
-                )}
+                {/* Body */}
+                <div className="course-card-body">
+                  <h3 className="course-card-title">{course.title}</h3>
+                  {course.instructors?.length > 0 && (
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                      👨‍🏫 {course.instructors.join(', ')}
+                    </div>
+                  )}
 
-                {/* Progress bar */}
-                <div style={{ margin: '1rem 0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                    <span>Progress ({course.completed_lessons} of {course.total_lessons} lessons)</span>
-                    <span>{course.progress_percentage}%</span>
-                  </div>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: `${course.progress_percentage}%` }} />
+                  {/* Progress */}
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--navy)' }}>
+                      <span>{course.completed_lessons} / {course.total_lessons} lessons</span>
+                      <span style={{ color: done ? 'var(--success)' : 'var(--navy)' }}>{course.progress_percentage}%</span>
+                    </div>
+                    <div className="progress-bar-bg">
+                      <div className="progress-bar-fill" style={{ width: `${course.progress_percentage}%`, background: done ? 'linear-gradient(90deg, #15803d, #16a34a)' : undefined }} />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-                <Link to={`/student/courses/${course.id}/player`} className="btn btn-primary" style={{ width: '100%' }}>
-                  <PlayCircle size={16} />
-                  <span>{course.progress_percentage === 100 ? 'Review Course' : 'Resume Learning'}</span>
-                </Link>
+                {/* Footer */}
+                <div className="course-card-footer">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                    <Layers size={13} /> {course.total_lessons} lessons
+                  </div>
+                  <Link to={`/student/courses/${course.id}/player`} className={`btn btn-sm ${done ? 'btn-secondary' : 'btn-primary'}`}>
+                    <PlayCircle size={13} />
+                    <span>{done ? 'Review' : 'Resume'}</span>
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

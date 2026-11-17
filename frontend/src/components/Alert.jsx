@@ -1,31 +1,23 @@
 import React from 'react';
-import { AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info, X } from 'lucide-react';
 
 export default function Alert({ type = 'error', message, onClose }) {
   if (!message) return null;
 
-  const styles = {
-    error: { bg: '#fef2f2', border: '#fecaca', color: '#991b1b', Icon: AlertCircle },
-    success: { bg: '#f0fdf4', border: '#bbf7d0', color: '#166534', Icon: CheckCircle },
-    info: { bg: '#f0f9ff', border: '#bae6fd', color: '#075985', Icon: Info },
+  const map = {
+    error:   { cls: 'alert-error',   Icon: AlertCircle },
+    success: { cls: 'alert-success', Icon: CheckCircle },
+    info:    { cls: 'alert-info',    Icon: Info },
   };
-
-  const current = styles[type] || styles.error;
-  const { Icon } = current;
+  const { cls, Icon } = map[type] || map.error;
 
   return (
-    <div style={{
-      backgroundColor: current.bg, border: `1px solid ${current.border}`,
-      color: current.color, padding: '0.75rem 1rem', borderRadius: '6px',
-      display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem',
-      fontSize: '0.875rem'
-    }}>
-      <Icon size={18} style={{ flexShrink: 0 }} />
+    <div className={`alert ${cls}`}>
+      <Icon size={17} style={{ flexShrink: 0, marginTop: '1px' }} />
       <span style={{ flex: 1 }}>{message}</span>
       {onClose && (
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'inherit', fontWeight: 'bold' }}>
-          ×
-        </button>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'inherit', fontSize: '1.1rem', lineHeight: 1, padding: 0, opacity: 0.7 }}
+          title="Dismiss">×</button>
       )}
     </div>
   );

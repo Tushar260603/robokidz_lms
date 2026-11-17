@@ -103,15 +103,17 @@ export default function AdminUsersPage() {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Users Management</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Manage student and instructor accounts</p>
+      <div className="page-header">
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h1>👥 Users Management</h1>
+            <p>Manage student and instructor accounts</p>
+          </div>
+          <button type="button" onClick={handleOpenCreate} className="btn btn-accent" style={{ position: 'relative', zIndex: 2, cursor: 'pointer' }}>
+            <UserPlus size={16} />
+            <span>Add User</span>
+          </button>
         </div>
-        <button onClick={handleOpenCreate} className="btn btn-primary">
-          <UserPlus size={16} />
-          <span>Add User</span>
-        </button>
       </div>
 
       <Alert type="error" message={error} onClose={() => setError('')} />
@@ -179,21 +181,27 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => handleOpenEdit(u)} className="btn btn-secondary btn-sm" title="Edit">
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleToggleStatus(u)}
-                          className="btn btn-secondary btn-sm"
-                          title={u.is_active ? 'Deactivate' : 'Activate'}
-                        >
-                          <Power size={14} color={u.is_active ? '#dc2626' : '#16a34a'} />
-                        </button>
-                        <button onClick={() => handleDeleteUser(u.id)} className="btn btn-danger btn-sm" title="Delete">
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                      {u.role === 'admin' ? (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          Protected
+                        </span>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button onClick={() => handleOpenEdit(u)} className="btn btn-secondary btn-sm" title="Edit">
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleToggleStatus(u)}
+                            className="btn btn-secondary btn-sm"
+                            title={u.is_active ? 'Deactivate' : 'Activate'}
+                          >
+                            <Power size={14} color={u.is_active ? '#dc2626' : '#16a34a'} />
+                          </button>
+                          <button onClick={() => handleDeleteUser(u.id)} className="btn btn-danger btn-sm" title="Delete">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -204,11 +212,69 @@ export default function AdminUsersPage() {
               )}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          {Math.ceil(total / 10) > 1 && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem 1.25rem',
+              borderTop: '1px solid var(--border)',
+              background: '#ffffff',
+              flexWrap: 'wrap',
+              gap: '0.75rem'
+            }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Showing <strong>{((page - 1) * 10) + 1}</strong> - <strong>{Math.min(page * 10, total)}</strong> of <strong>{total}</strong> users
+              </span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="btn btn-secondary btn-sm"
+                  style={{ opacity: page === 1 ? 0.5 : 1, cursor: page === 1 ? 'not-allowed' : 'pointer' }}
+                >
+                  ← Previous
+                </button>
+
+                {Array.from({ length: Math.ceil(total / 10) }, (_, i) => i + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setPage(pageNum)}
+                    className={`btn btn-sm ${pageNum === page ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ minWidth: '32px' }}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => setPage(p => Math.min(Math.ceil(total / 10), p + 1))}
+                  disabled={page === Math.ceil(total / 10)}
+                  className="btn btn-secondary btn-sm"
+                  style={{ opacity: page === Math.ceil(total / 10) ? 0.5 : 1, cursor: page === Math.ceil(total / 10) ? 'not-allowed' : 'pointer' }}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Create / Edit Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingUser ? 'Edit User' : 'Add New User'}>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+          {editingUser
+            ? 'Update the details for this account.'
+            : 'Fill in the information below to create a new Student or Instructor account.'}
+        </p>
+
         <form onSubmit={handleSaveUser}>
           <div className="form-group">
             <label className="form-label">Full Name</label>
@@ -217,37 +283,42 @@ export default function AdminUsersPage() {
               className="form-input"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="e.g. John Doe"
               required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label">Email Address</label>
             <input
               type="email"
               className="form-input"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="e.g. john@example.com"
               required
             />
           </div>
 
           {!editingUser && (
             <div className="form-group">
-              <label className="form-label">Role</label>
+              <label className="form-label">Account Role</label>
               <select
                 className="form-select"
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                style={{ fontWeight: 600 }}
               >
-                <option value="student">Student</option>
-                <option value="instructor">Instructor</option>
+                <option value="student">🎓 Student (Can enroll & take courses)</option>
+                <option value="instructor">👨‍🏫 Instructor (Can create & manage course content)</option>
               </select>
             </div>
           )}
 
           <div className="form-group">
-            <label className="form-label">Password {editingUser && '(Leave blank to keep unchanged)'}</label>
+            <label className="form-label">
+              Password {editingUser ? '(Leave blank to keep unchanged)' : '(Min. 8 characters)'}
+            </label>
             <input
               type="password"
               className="form-input"
@@ -265,6 +336,7 @@ export default function AdminUsersPage() {
               rows={3}
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              placeholder="Brief description or background..."
             />
           </div>
 

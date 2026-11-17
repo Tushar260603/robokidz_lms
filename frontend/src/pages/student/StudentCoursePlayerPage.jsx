@@ -63,9 +63,21 @@ export default function StudentCoursePlayerPage() {
     }
   };
 
-  const handleDownload = (materialId) => {
-    const url = studentApi.downloadMaterialUrl(materialId);
-    window.open(url, '_blank');
+  const handleDownload = async (materialId, fileName) => {
+    try {
+      const res = await studentApi.downloadMaterial(materialId);
+      const blob = new Blob([res.data], { type: res.headers['content-type'] || 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || `material-${materialId}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError('Failed to download file. Please try again.');
+    }
   };
 
   if (loading) return <Loader fullScreen text="Loading course player..." />;
@@ -209,7 +221,7 @@ export default function StudentCoursePlayerPage() {
                             </div>
                           </div>
 
-                          <button onClick={() => handleDownload(mat.id)} className="btn btn-secondary btn-sm">
+                          <button onClick={() => handleDownload(mat.id, mat.original_name)} className="btn btn-secondary btn-sm">
                             <Download size={14} />
                             <span>Download</span>
                           </button>

@@ -10,8 +10,9 @@ from app.models.course_instructor import CourseInstructor
 from app.models.enrollment import Enrollment
 from app.models.lesson import Lesson, LessonStatus
 from app.models.lesson_progress import LessonProgress
+from app.models.material import Material
 from app.schemas.student import (
-    StudentCourseListItem, StudentCourseDetail,
+    StudentCourseListItem, StudentCourseDetail, LessonPreviewOut,
     StudentEnrolledCourseItem, StudentCoursePlayer,
     StudentLessonOut, StudentMaterialOut
 )
@@ -104,13 +105,33 @@ def get_course_detail(course_id: int, db: Session, current_student: User | None 
         ).filter(CourseInstructor.course_id == course.id).all()
     ]
 
-    published_lessons = db.query(Lesson.id).filter(
+    published_lessons = db.query(Lesson).filter(
         Lesson.course_id == course.id,
         Lesson.status == LessonStatus.published,
         Lesson.is_deleted == False
-    ).all()
-    lesson_ids = [l[0] for l in published_lessons]
+    ).order_by(Lesson.position.asc()).all()
+
+    lesson_ids = [l.id for l in published_lessons]
     total_lessons = len(lesson_ids)
+
+    # Count materials per lesson
+    mat_counts = {}
+    if lesson_ids:
+        counts = db.query(
+            Material.lesson_id, func.count(Material.id)
+        ).filter(Material.lesson_id.in_(lesson_ids)).group_by(Material.lesson_id).all()
+        mat_counts = {lid: cnt for lid, cnt in counts}
+
+    lesson_previews = [
+        LessonPreviewOut(
+            id=l.id,
+            title=l.title,
+            position=l.position,
+            has_video=bool(l.video_url),
+            materials_count=mat_counts.get(l.id, 0)
+        )
+        for l in published_lessons
+    ]
 
     is_enrolled = False
     pct = 0.0
@@ -139,7 +160,8 @@ def get_course_detail(course_id: int, db: Session, current_student: User | None 
         instructors=instructors,
         total_lessons=total_lessons,
         is_enrolled=is_enrolled,
-        progress_percentage=pct
+        progress_percentage=pct,
+        lessons=lesson_previews
     )
 
 

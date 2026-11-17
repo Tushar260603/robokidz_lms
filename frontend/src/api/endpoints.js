@@ -67,5 +67,6 @@ export const studentApi = {
   getMyCourses: () => client.get('/student/my-courses'),
   getCoursePlayer: (courseId) => client.get(`/student/courses/${courseId}/player`),
   markLessonComplete: (lessonId) => client.post(`/student/lessons/${lessonId}/complete`),
-  downloadMaterialUrl: (materialId) => `${client.defaults.baseURL}/materials/${materialId}/download`,
+  downloadMaterial: (materialId) =>
+    client.get(`/materials/${materialId}/download`, { responseType: 'blob' }),
 };

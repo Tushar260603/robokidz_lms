@@ -465,6 +465,7 @@ def get_admin_stats(db: Session) -> AdminStatsOut:
         total_pub = len(published_ids)
 
         completed_students_count = 0
+        total_progress_sum = 0.0
         if total_pub > 0 and enrolled_count > 0:
             student_ids = [e.student_id for e in db.query(Enrollment.student_id).filter(Enrollment.course_id == c.id).all()]
             for s_id in student_ids:
@@ -472,10 +473,12 @@ def get_admin_stats(db: Session) -> AdminStatsOut:
                     LessonProgress.student_id == s_id,
                     LessonProgress.lesson_id.in_(published_ids)
                 ).count()
+                total_progress_sum += (comp / total_pub) * 100
                 if comp == total_pub:
                     completed_students_count += 1
 
         completion_rate = round((completed_students_count / enrolled_count) * 100, 1) if enrolled_count > 0 else 0.0
+        avg_progress = round(total_progress_sum / enrolled_count, 1) if enrolled_count > 0 else 0.0
 
         course_stats.append(CourseStatItem(
             course_id=c.id,
@@ -483,7 +486,8 @@ def get_admin_stats(db: Session) -> AdminStatsOut:
             total_enrolled=enrolled_count,
             published_lessons_count=total_pub,
             completed_students_count=completed_students_count,
-            completion_rate_percentage=completion_rate
+            completion_rate_percentage=completion_rate,
+            average_progress_percentage=avg_progress
         ))
 
     return AdminStatsOut(
